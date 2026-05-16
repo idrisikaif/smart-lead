@@ -17,6 +17,9 @@ export const getLeads = async (req: AuthRequest, res: Response): Promise<void> =
     const { status, source, search, sort, page = 1, limit = 10 } = req.query;
 
     const query: any = {};
+    if (req.user?.role === 'sales') {
+      query.createdBy = req.user.id;
+    }
 
     if (status) query.status = status;
     if (source) query.source = source;
@@ -92,7 +95,11 @@ export const deleteLead = async (req: AuthRequest, res: Response): Promise<void>
 
 export const exportCSV = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const leads = await Lead.find({});
+    const query: any = {};
+    if (req.user?.role === 'sales') {
+      query.createdBy = req.user.id;
+    }
+    const leads = await Lead.find(query);
     const fields = ['name', 'email', 'status', 'source', 'createdAt'];
     const parser = new Parser({ fields });
     const csv = parser.parse(leads.map(l => l.toObject()));
